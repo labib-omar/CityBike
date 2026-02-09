@@ -1,4 +1,5 @@
 # CityBike
+```
 ├── 📁 data
 │   ├── 🐍 generate_datasets.py
 │   ├── 📄 maintenance.csv
@@ -15,3 +16,4 @@
 ├── 🐍 pricing.py
 ├── 🐍 utils.py
 └── 🐍 visualization.py
+```
