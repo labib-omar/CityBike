@@ -71,46 +71,85 @@ class BikeShareSystem:
     def clean_data(self) -> None:
         """Clean all DataFrames and export to CSV.
 
-        Steps to implement:
+        Steps implemented:
             1. Remove duplicate rows
             2. Parse date/datetime columns
             3. Convert numeric columns stored as strings
-            4. Handle missing values (document your strategy!)
-            5. Remove invalid entries (e.g. end_time < start_time)
+            4. Handle missing values
+            5. Remove invalid entries (e.g., end_time < start_time)
             6. Standardize categorical values
-            7. Export cleaned data to data/trips_clean.csv etc.
-
-        TODO: implement each step below.
+            7. Export cleaned data
         """
-        if self.trips is None:
+        if self.trips is None or self.stations is None or self.maintenance is None:
             raise RuntimeError("Call load_data() first")
 
-        # --- Step 1: Remove duplicates ---
+        # -------------------------------
+        # 1️⃣ Remove duplicates
+        # -------------------------------
         self.trips = self.trips.drop_duplicates(subset=["trip_id"])
-        print(f"After dedup: {self.trips.shape[0]} trips")
+        self.stations = self.stations.drop_duplicates(subset=["station_id"])
+        self.maintenance = self.maintenance.drop_duplicates(subset=["record_id"])
+        print(f"After dedup: {self.trips.shape[0]} trips, "
+            f"{self.stations.shape[0]} stations, "
+            f"{self.maintenance.shape[0]} maintenance records")
 
-        # --- Step 2: Parse dates ---
-        # TODO: convert start_time, end_time to datetime
-        # self.trips["start_time"] = pd.to_datetime(...)
+        # -------------------------------
+        # 2️⃣ Parse date/datetime columns
+        # -------------------------------
+        self.trips["start_time"] = pd.to_datetime(self.trips["start_time"], errors="coerce")
+        self.trips["end_time"] = pd.to_datetime(self.trips["end_time"], errors="coerce")
+        self.maintenance["date"] = pd.to_datetime(self.maintenance["date"], errors="coerce")
 
-        # --- Step 3: Convert numeric columns ---
-        # TODO: ensure duration_minutes and distance_km are float
+        # -------------------------------
+        # 3️⃣ Convert numeric columns
+        # -------------------------------
+        numeric_cols = ["duration_minutes", "distance_km"]
+        for col in numeric_cols:
+            self.trips[col] = pd.to_numeric(self.trips[col], errors="coerce")
 
-        # --- Step 4: Handle missing values ---
-        # TODO: decide on a strategy and document it
-        # Example: self.trips["duration_minutes"].fillna(..., inplace=True)
+        self.maintenance["cost"] = pd.to_numeric(self.maintenance["cost"], errors="coerce")
 
-        # --- Step 5: Remove invalid entries ---
-        # TODO: drop rows where end_time < start_time
+        # -------------------------------
+        # 4️⃣ Handle missing values
+        # -------------------------------
+        # Trips: drop rows missing critical info
+        self.trips = self.trips.dropna(subset=["trip_id", "user_id", "bike_id",
+                                            "start_station_id", "end_station_id",
+                                            "start_time", "end_time", "duration_minutes", "distance_km", "status"])
 
-        # --- Step 6: Standardize categoricals ---
-        # TODO: e.g. self.trips["status"].str.lower().str.strip()
+        # Maintenance: drop rows missing key info
+        self.maintenance = self.maintenance.dropna(subset=["record_id", "bike_id", "date", "maintenance_type", "cost"])
 
-        # --- Step 7: Export cleaned datasets ---
-        # self.trips.to_csv(DATA_DIR / "trips_clean.csv", index=False)
-        # self.stations.to_csv(DATA_DIR / "stations_clean.csv", index=False)
+        # Stations: fill missing names with "Unknown"
+        self.stations["station_name"] = self.stations["station_name"].fillna("Unknown")
+
+        # -------------------------------
+        # 5️⃣ Remove invalid entries
+        # -------------------------------
+        self.trips = self.trips[self.trips["end_time"] >= self.trips["start_time"]]
+        self.trips = self.trips[self.trips["duration_minutes"] >= 0]
+        self.trips = self.trips[self.trips["distance_km"] >= 0]
+
+        # -------------------------------
+        # 6️⃣ Standardize categorical values
+        # -------------------------------
+        cat_cols = ["status", "user_type", "bike_type"]
+        for col in cat_cols:
+            if col in self.trips.columns:
+                self.trips[col] = self.trips[col].str.lower().str.strip()
+
+        self.maintenance["maintenance_type"] = self.maintenance["maintenance_type"].str.lower().str.strip()
+
+        # -------------------------------
+        # 7️⃣ Export cleaned datasets
+        # -------------------------------
+        self.trips.to_csv(DATA_DIR / "trips_clean.csv", index=False)
+        self.stations.to_csv(DATA_DIR / "stations_clean.csv", index=False)
+        self.maintenance.to_csv(DATA_DIR / "maintenance_clean.csv", index=False)
 
         print("Cleaning complete.")
+        print(f"Cleaned trips: {self.trips.shape[0]}, stations: {self.stations.shape[0]}, maintenance: {self.maintenance.shape[0]}")
+
 
     # ------------------------------------------------------------------
     # Analytics — Business Questions

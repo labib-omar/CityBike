@@ -16,6 +16,9 @@ from models import (
     User,
     CasualUser,
     MemberUser,
+    Trip,
+    Station,
+    MaintenanceRecord,
 )
 
 
@@ -100,3 +103,72 @@ def create_user(data: dict) -> User:
 
     else:
         raise ValueError(f"Unknown user_type: {user_type!r}")
+
+def create_trip(data: dict, users: dict, bikes: dict, stations: dict) -> Trip:
+    """
+    Create a Trip from a data dictionary.
+
+    Args:
+        data: dict with trip info, e.g. 'trip_id', 'user_id', 'bike_id', 'start_station_id', ...
+        users: dict mapping user_id -> User instance
+        bikes: dict mapping bike_id -> Bike instance
+        stations: dict mapping station_id -> Station instance
+
+    Returns:
+        Trip instance
+    """
+    trip_id = data["trip_id"]
+
+    # Lookup objects by ID
+    user = users[data["user_id"]]
+    bike = bikes[data["bike_id"]]
+    start_station = stations[data["start_station_id"]]
+    end_station = stations[data["end_station_id"]]
+
+    # Parse datetime
+    start_time = datetime.fromisoformat(data["start_time"])
+    end_time = datetime.fromisoformat(data["end_time"])
+
+    # Distance
+    distance_km = float(data.get("distance_km", 0.0))
+
+    return Trip(
+        trip_id=trip_id,
+        user=user,
+        bike=bike,
+        start_station=start_station,
+        end_station=end_station,
+        start_time=start_time,
+        end_time=end_time,
+        distance_km=distance_km,
+    )
+
+from models import MaintenanceRecord
+
+def create_maintenance_record(data: dict, bikes: dict) -> MaintenanceRecord:
+    """
+    Create a MaintenanceRecord from a data dictionary.
+
+    Args:
+        data: dict with record info, e.g. 'record_id', 'bike_id', 'date', 'maintenance_type', 'cost'
+        bikes: dict mapping bike_id -> Bike instance
+
+    Returns:
+        MaintenanceRecord instance
+    """
+    record_id = data["record_id"]
+    bike = bikes[data["bike_id"]]
+
+    date = datetime.fromisoformat(data["date"])
+    maintenance_type = data["maintenance_type"]
+    cost = float(data.get("cost", 0.0))
+    description = data.get("description", "")
+
+    return MaintenanceRecord(
+        record_id=record_id,
+        bike=bike,
+        date=date,
+        maintenance_type=maintenance_type,
+        cost=cost,
+        description=description,
+    )
