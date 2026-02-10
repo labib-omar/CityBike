@@ -69,7 +69,7 @@ pytest tests/ -v
 | 2 | Domain Models           | ✅     |
 | 3 | Data Loading & Cleaning | ✅     |
 | 4 | Algorithms              | ✅     |
-| 5 | Numerical Computing     | 🔧     |
+| 5 | Numerical Computing     | ✅     |
 | 6 | Analytics               | 🔧     |
 | 7 | Visualization           | 🔧     |
 | 8 | Polish & Delivery       | ⬜     |
