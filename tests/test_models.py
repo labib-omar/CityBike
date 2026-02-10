@@ -9,13 +9,107 @@ Covers:
 
 import pytest
 from datetime import datetime
-
 from models import (
     Bike,
-    ClassicBike,
-    ElectricBike,
-    Entity,
+    User,
+    Trip,
+    Station,
+    MaintenanceRecord,
 )
+
+
+def create_trip(data: dict, user_map: dict, bike_map: dict, station_map: dict) -> Trip:
+    """Create a Trip object from a data dictionary.
+
+    Args:
+        data: Dict with trip info (trip_id, user_id, bike_id, start_station_id, end_station_id, start_time, end_time, distance_km)
+        user_map: dict mapping user_id -> User object
+        bike_map: dict mapping bike_id -> Bike object
+        station_map: dict mapping station_id -> Station object
+
+    Returns:
+        Trip instance.
+
+    Raises:
+        ValueError if IDs are not found in the maps or invalid data.
+    """
+    # Lookup associated objects
+    user = user_map.get(data["user_id"])
+    bike = bike_map.get(data["bike_id"])
+    start_station = station_map.get(data["start_station_id"])
+    end_station = station_map.get(data["end_station_id"])
+
+    if user is None:
+        raise ValueError(f"User ID {data['user_id']} not found")
+    if bike is None:
+        raise ValueError(f"Bike ID {data['bike_id']} not found")
+    if start_station is None:
+        raise ValueError(f"Start station ID {data['start_station_id']} not found")
+    if end_station is None:
+        raise ValueError(f"End station ID {data['end_station_id']} not found")
+
+    # Parse datetimes
+    start_time = datetime.fromisoformat(data["start_time"])
+    end_time = datetime.fromisoformat(data["end_time"])
+
+    # Distance validation
+    distance_km = float(data.get("distance_km", 0.0))
+    if distance_km < 0:
+        raise ValueError("distance_km cannot be negative")
+
+    # Ensure end_time >= start_time
+    if end_time < start_time:
+        raise ValueError("end_time cannot be before start_time")
+
+    return Trip(
+        trip_id=data["trip_id"],
+        user=user,
+        bike=bike,
+        start_station=start_station,
+        end_station=end_station,
+        start_time=start_time,
+        end_time=end_time,
+        distance_km=distance_km,
+    )
+
+
+def create_maintenance_record(data: dict, bike_map: dict) -> MaintenanceRecord:
+    """Create a MaintenanceRecord object from a data dictionary.
+
+    Args:
+        data: Dict with maintenance info (record_id, bike_id, date, maintenance_type, cost, description)
+        bike_map: dict mapping bike_id -> Bike object
+
+    Returns:
+        MaintenanceRecord instance.
+
+    Raises:
+        ValueError if bike_id is missing or maintenance_type/cost invalid.
+    """
+    bike = bike_map.get(data["bike_id"])
+    if bike is None:
+        raise ValueError(f"Bike ID {data['bike_id']} not found")
+
+    # Parse date
+    date = datetime.fromisoformat(data["date"])
+
+    # Cost validation
+    cost = float(data.get("cost", 0.0))
+    if cost < 0:
+        raise ValueError("Maintenance cost cannot be negative")
+
+    maintenance_type = data["maintenance_type"]
+    description = data.get("description", "")
+
+    return MaintenanceRecord(
+        record_id=data["record_id"],
+        bike=bike,
+        date=date,
+        maintenance_type=maintenance_type,
+        cost=cost,
+        description=description,
+    )
+
 
 
 # ---------------------------------------------------------------------------

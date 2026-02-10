@@ -53,19 +53,50 @@ def create_bike(data: dict) -> Bike:
         raise ValueError(f"Unknown bike_type: {bike_type!r}")
 
 
+from datetime import datetime
+
 def create_user(data: dict) -> User:
     """Create a User (CasualUser or MemberUser) from a data dictionary.
-
-    TODO:
-        - Inspect data["user_type"] to decide which subclass to create
-        - Pass the relevant fields to each constructor
-        - Return the created object
 
     Args:
         data: A dict with at least 'user_id', 'name', 'email', 'user_type'.
 
     Returns:
         A CasualUser or MemberUser instance.
+
+    Raises:
+        ValueError: If user_type is unknown or required fields are missing.
     """
-    # TODO: implement factory logic (similar to create_bike above)
-    raise NotImplementedError("create_user")
+    user_type = data.get("user_type", "").lower()
+
+    if user_type == "casual":
+        return CasualUser(
+            user_id=data["user_id"],
+            name=data["name"],
+            email=data["email"],
+            day_pass_count=int(data.get("day_pass_count", 0)),
+        )
+
+    elif user_type == "member":
+        # Parse membership dates; assume ISO format if provided
+        start_str = data.get("membership_start")
+        end_str = data.get("membership_end")
+
+        membership_start = (
+            datetime.fromisoformat(start_str) if start_str else datetime.now()
+        )
+        membership_end = (
+            datetime.fromisoformat(end_str) if end_str else membership_start
+        )
+
+        return MemberUser(
+            user_id=data["user_id"],
+            name=data["name"],
+            email=data["email"],
+            membership_start=membership_start,
+            membership_end=membership_end,
+            tier=data.get("tier", "basic").lower(),
+        )
+
+    else:
+        raise ValueError(f"Unknown user_type: {user_type!r}")
