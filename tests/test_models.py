@@ -10,12 +10,16 @@ Covers:
 import pytest
 from datetime import datetime
 from models import (
+    Entity,
     Bike,
+    ClassicBike,
+    ElectricBike,
     User,
     Trip,
     Station,
     MaintenanceRecord,
 )
+
 
 
 def create_trip(data: dict, user_map: dict, bike_map: dict, station_map: dict) -> Trip:

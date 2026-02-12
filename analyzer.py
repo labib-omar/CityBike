@@ -247,10 +247,27 @@ class BikeShareSystem:
 
         return routes
 
+    def trip_completion_rate(self) -> float:
+        if self.trips.empty:
+            return 0.0
+        completed_count = self.trips[self.trips["status"] == "completed"].shape[0]
+        total_count = self.trips.shape[0]
+        return (completed_count / total_count) * 100
 
-    # ------------------------------------------------------------------
-    # Add more analytics methods here (Q6, Q11–Q14)
-    # ------------------------------------------------------------------
+
+    def avg_trips_per_user_by_type(self) -> pd.DataFrame:
+        """Average number of trips per user, segmented by user type."""
+        if self.trips.empty:
+            return pd.DataFrame(columns=["user_type", "avg_trips"])
+
+        avg_trips = (
+            self.trips.groupby("user_type")
+            .size()
+            .div(self.trips.groupby("user_type")["user_id"].nunique())
+            .reset_index(name="avg_trips")
+        )
+        return avg_trips
+
 
     # ------------------------------------------------------------------
     # Reporting
@@ -258,10 +275,6 @@ class BikeShareSystem:
 
     def generate_summary_report(self) -> None:
         """Write a summary text report to output/summary_report.txt.
-
-        TODO:
-            - Uncomment and complete each section below
-            - Add results from remaining analytics methods
         """
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
         report_path = OUTPUT_DIR / "summary_report.txt"
@@ -277,6 +290,7 @@ class BikeShareSystem:
         lines.append(f"  Total trips       : {summary['total_trips']}")
         lines.append(f"  Total distance    : {summary['total_distance_km']} km")
         lines.append(f"  Avg duration      : {summary['avg_duration_min']} min")
+
         # --- Q2: Top start stations ---
         top_stations = self.top_start_stations()
         lines.append("\n--- Top 10 Start Stations ---")
@@ -317,8 +331,17 @@ class BikeShareSystem:
         lines.append("\n--- Top Routes ---")
         lines.append(routes.to_string(index=False))
 
+        # --- Q11: Trip Completion Rate ---
+        completion_rate = self.trip_completion_rate()
+        lines.append("\n--- Trip Completion Rate ---")
+        lines.append(f"Completed Trips: {completion_rate:.2f}%")
 
-        # TODO: add more sections for Q4–Q8, Q10–Q14 …
+        # --- Q12: Avg Trips per User by Type ---
+        avg_trips = self.avg_trips_per_user_by_type()
+        lines.append("\n--- Average Trips per User (by User Type) ---")
+        lines.append(avg_trips.to_string(index=False))
+
+
 
         report_text = "\n".join(lines) + "\n"
         report_path.write_text(report_text)

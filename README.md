@@ -72,7 +72,7 @@ pytest tests/ -v
 | 5 | Numerical Computing     | ✅     |
 | 6 | Analytics               | ✅     |
 | 7 | Visualization           | ✅     |
-| 8 | Polish & Delivery       | 🔧     |
+| 8 | Polish & Delivery       | ✅     |
 
 ## Dependencies
 

@@ -106,3 +106,11 @@ start_station_id end_station_id  trip_count
            ST108          ST106          11
            ST109          ST102          11
            ST108          ST105          11
+
+--- Trip Completion Rate ---
+Completed Trips: 87.82%
+
+--- Average Trips per User (by User Type) ---
+user_type  avg_trips
+   casual   7.707692
+   member  13.892308
