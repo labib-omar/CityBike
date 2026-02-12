@@ -1,14 +1,13 @@
 """
 Matplotlib visualizations for the CityBike platform.
 
-Students should create at least 4 charts:
-    1. Bar chart — trips per station or revenue by user type
-    2. Line chart — monthly trip trend over time
-    3. Histogram — trip duration or distance distribution
-    4. Box plot — duration by user type or bike type
+Creates:
+    1. Bar chart — trips per station
+    2. Line chart — monthly trip trend
+    3. Histogram — trip duration distribution
+    4. Box plot — duration by user type
 
-All charts must have: title, axis labels, legend (where applicable).
-Export each chart as PNG to output/figures/.
+Exports PNG files to output/figures/.
 """
 
 import matplotlib.pyplot as plt
@@ -29,16 +28,10 @@ def _save_figure(fig: plt.Figure, filename: str) -> None:
 
 
 # ---------------------------------------------------------------------------
-# 1. Bar chart (provided as example)
+# 1. Bar chart — trips per station
 # ---------------------------------------------------------------------------
 
 def plot_trips_per_station(trips: pd.DataFrame, stations: pd.DataFrame) -> None:
-    """Bar chart showing the number of trips starting at each station.
-
-    Args:
-        trips: Cleaned trips DataFrame.
-        stations: Stations DataFrame (for station names).
-    """
     counts = (
         trips["start_station_id"]
         .value_counts()
@@ -46,6 +39,7 @@ def plot_trips_per_station(trips: pd.DataFrame, stations: pd.DataFrame) -> None:
         .rename_axis("station_id")
         .reset_index(name="trip_count")
     )
+
     merged = counts.merge(
         stations[["station_id", "station_name"]],
         on="station_id",
@@ -58,6 +52,7 @@ def plot_trips_per_station(trips: pd.DataFrame, stations: pd.DataFrame) -> None:
     ax.set_ylabel("Station")
     ax.set_title("Top 10 Start Stations by Trip Count")
     ax.invert_yaxis()
+
     _save_figure(fig, "trips_per_station.png")
 
 
@@ -66,15 +61,23 @@ def plot_trips_per_station(trips: pd.DataFrame, stations: pd.DataFrame) -> None:
 # ---------------------------------------------------------------------------
 
 def plot_monthly_trend(trips: pd.DataFrame) -> None:
-    """Line chart of monthly trip counts.
+    monthly = (
+        trips
+        .set_index("start_time")
+        .resample("ME")
+        .size()
+    )
 
-    TODO:
-        - Extract year-month from start_time
-        - Group and count
-        - Plot a line chart
-        - Save as 'monthly_trend.png'
-    """
-    raise NotImplementedError("plot_monthly_trend")
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.plot(monthly.index, monthly.values, marker="o", label="Monthly Trips")
+
+    ax.set_title("Monthly Trip Trend")
+    ax.set_xlabel("Month")
+    ax.set_ylabel("Number of Trips")
+    ax.legend()
+    ax.grid(True)
+
+    _save_figure(fig, "monthly_trend.png")
 
 
 # ---------------------------------------------------------------------------
@@ -82,15 +85,16 @@ def plot_monthly_trend(trips: pd.DataFrame) -> None:
 # ---------------------------------------------------------------------------
 
 def plot_duration_histogram(trips: pd.DataFrame) -> None:
-    """Histogram of trip durations.
+    fig, ax = plt.subplots(figsize=(8, 5))
 
-    TODO:
-        - Use trips["duration_minutes"]
-        - Choose an appropriate number of bins
-        - Add title, axis labels
-        - Save as 'duration_histogram.png'
-    """
-    raise NotImplementedError("plot_duration_histogram")
+    ax.hist(trips["duration_minutes"], bins=30, alpha=0.7, edgecolor="black", label="Duration")
+
+    ax.set_title("Trip Duration Distribution")
+    ax.set_xlabel("Duration (minutes)")
+    ax.set_ylabel("Frequency")
+    ax.legend()
+
+    _save_figure(fig, "duration_histogram.png")
 
 
 # ---------------------------------------------------------------------------
@@ -98,12 +102,16 @@ def plot_duration_histogram(trips: pd.DataFrame) -> None:
 # ---------------------------------------------------------------------------
 
 def plot_duration_by_user_type(trips: pd.DataFrame) -> None:
-    """Box plot comparing trip durations across user types.
+    grouped = trips.groupby("user_type")["duration_minutes"]
 
-    TODO:
-        - Group data by user_type
-        - Create side-by-side box plots
-        - Add title, axis labels
-        - Save as 'duration_by_user_type.png'
-    """
-    raise NotImplementedError("plot_duration_by_user_type")
+    data = [group for _, group in grouped]
+    labels = [name for name, _ in grouped]
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.boxplot(data, labels=labels)
+
+    ax.set_title("Trip Duration by User Type")
+    ax.set_xlabel("User Type")
+    ax.set_ylabel("Duration (minutes)")
+
+    _save_figure(fig, "duration_by_user_type.png")

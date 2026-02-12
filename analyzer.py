@@ -210,7 +210,7 @@ class BikeShareSystem:
         monthly = (
             self.trips
             .set_index("start_time")
-            .resample("M")
+            .resample("ME")
             .size()
         )
         return monthly
@@ -229,18 +229,10 @@ class BikeShareSystem:
 
 
     def maintenance_cost_by_bike_type(self) -> pd.Series:
-        merged = self.maintenance.merge(
-            self.trips[["bike_id", "bike_type"]].drop_duplicates(),
-            on="bike_id",
-            how="left",
-        )
+        self.maintenance["bike_type"] = self.maintenance["bike_type"].str.lower().str.strip()
+        
+        return self.maintenance.groupby("bike_type")["cost"].sum().round(2)
 
-        return (
-            merged
-            .groupby("bike_type")["cost"]
-            .sum()
-            .round(2)
-        )
 
 
     def top_routes(self, n: int = 10) -> pd.DataFrame:

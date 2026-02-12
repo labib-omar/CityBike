@@ -1,0 +1,108 @@
+============================================================
+  CityBike — Summary Report
+============================================================
+
+--- Overall Summary ---
+  Total trips       : 1404
+  Total distance    : 10741.14 km
+  Avg duration      : 23.58 min
+
+--- Top 10 Start Stations ---
+     station_name  trip_count
+         Old Town         105
+   Riverside Park         105
+    Market Square         104
+        City Hall         100
+         Lakeside          99
+      Harbor View          99
+         Tech Hub          95
+University Campus          94
+Business District          94
+  Central Station          91
+
+--- Peak Usage Hours ---
+start_time
+6     65
+7     89
+8     64
+9     76
+10    68
+11    84
+12    90
+13    74
+14    71
+15    88
+16    91
+17    85
+18    93
+19    89
+20    95
+21    92
+22    90
+
+--- Busiest Day of Week ---
+start_time
+Tuesday      217
+Monday       212
+Wednesday    203
+Friday       199
+Thursday     198
+Sunday       193
+Saturday     182
+
+--- Avg Distance by User Type ---
+user_type
+casual    7.49
+member    7.74
+
+--- Monthly Trip Trend ---
+start_time
+2024-01-31    114
+2024-02-29    108
+2024-03-31    123
+2024-04-30    118
+2024-05-31    121
+2024-06-30    111
+2024-07-31    128
+2024-08-31    121
+2024-09-30    103
+2024-10-31    128
+2024-11-30    118
+2024-12-31    111
+Freq: ME
+
+--- Top 15 Active Users ---
+user_id  trip_count
+USR1014          55
+USR1189          43
+USR1040          42
+USR1080          41
+USR1053          38
+USR1034          36
+USR1032          36
+USR1004          35
+USR1174          34
+USR1135          34
+USR1161          34
+USR1162          33
+USR1103          31
+USR1047          30
+USR1094          29
+
+--- Maintenance Cost by Bike Type ---
+bike_type
+classic      5496.39
+electric    13988.04
+
+--- Top Routes ---
+start_station_id end_station_id  trip_count
+           ST113          ST105          13
+           ST107          ST107          13
+           ST101          ST105          12
+           ST103          ST103          12
+           ST106          ST114          11
+           ST107          ST114          11
+           ST103          ST100          11
+           ST108          ST106          11
+           ST109          ST102          11
+           ST108          ST105          11
