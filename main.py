@@ -22,6 +22,11 @@ from visualization import (
     plot_monthly_trend,
     plot_duration_histogram,
     plot_duration_by_user_type,
+    plot_distance_histogram,
+    plot_avg_duration_by_hour,
+    plot_user_type_share,
+    plot_maintenance_cost_by_bike_type,
+    plot_top_routes_heatmap,
 )
 from pricing import CasualPricing, MemberPricing
 from numerical import calculate_fares
@@ -98,10 +103,18 @@ def main() -> None:
     # Step 5 — Visualizations
     print("\n>>> Generating visualizations …")
 
+    # Existing plots
     plot_trips_per_station(system.trips, system.stations)
     plot_monthly_trend(system.trips)
     plot_duration_histogram(system.trips)
     plot_duration_by_user_type(system.trips)
+
+    # New plots
+    plot_distance_histogram(system.trips)               # Histogram of trip distances
+    plot_avg_duration_by_hour(system.trips)            # Line chart: average duration by hour
+    plot_user_type_share(system.trips)                 # Pie chart: user type proportions
+    plot_maintenance_cost_by_bike_type(system.maintenance)  # Bar chart: maintenance cost by bike type
+    plot_top_routes_heatmap(system.trips)             # Heatmap: top routes (start vs end stations)
 
     # Step 6 — Report
     print("\n>>> Generating summary report …")
