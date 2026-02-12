@@ -169,60 +169,92 @@ class BikeShareSystem:
         }
 
     def top_start_stations(self, n: int = 10) -> pd.DataFrame:
-        """Q2: Top *n* most popular start stations.
+        counts = (
+            self.trips["start_station_id"]
+            .value_counts()
+            .head(n)
+            .reset_index()
+        )
 
-        TODO: use value_counts() or groupby on start_station_id,
-              merge with station names.
-        """
-        # Example start:
-        # counts = self.trips["start_station_id"].value_counts().head(n)
-        raise NotImplementedError("top_start_stations")
+        counts.columns = ["station_id", "trip_count"]
+
+        merged = counts.merge(
+            self.stations[["station_id", "station_name"]],
+            on="station_id",
+            how="left",
+        )
+
+        return merged[["station_name", "trip_count"]]
+
 
     def peak_usage_hours(self) -> pd.Series:
-        """Q3: Trip count by hour of day.
+        hours = self.trips["start_time"].dt.hour
+        return hours.value_counts().sort_index()
 
-        TODO: extract hour from start_time and count trips per hour.
-        """
-        raise NotImplementedError("peak_usage_hours")
 
     def busiest_day_of_week(self) -> pd.Series:
-        """Q4: Trip count by day of week.
+        days = self.trips["start_time"].dt.day_name()
+        return days.value_counts()
 
-        TODO: extract day-of-week from start_time, count.
-        """
-        raise NotImplementedError("busiest_day_of_week")
 
     def avg_distance_by_user_type(self) -> pd.Series:
-        """Q5: Average trip distance grouped by user type."""
-        raise NotImplementedError("avg_distance_by_user_type")
+        return (
+            self.trips
+            .groupby("user_type")["distance_km"]
+            .mean()
+            .round(2)
+        )
+
 
     def monthly_trip_trend(self) -> pd.Series:
-        """Q7: Monthly trip counts over time.
+        monthly = (
+            self.trips
+            .set_index("start_time")
+            .resample("M")
+            .size()
+        )
+        return monthly
 
-        TODO: extract year-month from start_time, group, count.
-        """
-        raise NotImplementedError("monthly_trip_trend")
 
     def top_active_users(self, n: int = 15) -> pd.DataFrame:
-        """Q8: Top *n* most active users by trip count.
+        top_users = (
+            self.trips
+            .groupby("user_id")
+            .size()
+            .sort_values(ascending=False)
+            .head(n)
+            .reset_index(name="trip_count")
+        )
+        return top_users
 
-        TODO: group by user_id, count trips, sort descending.
-        """
-        raise NotImplementedError("top_active_users")
 
     def maintenance_cost_by_bike_type(self) -> pd.Series:
-        """Q9: Total maintenance cost per bike type.
+        merged = self.maintenance.merge(
+            self.trips[["bike_id", "bike_type"]].drop_duplicates(),
+            on="bike_id",
+            how="left",
+        )
 
-        TODO: group maintenance by bike_type, sum cost.
-        """
-        raise NotImplementedError("maintenance_cost_by_bike_type")
+        return (
+            merged
+            .groupby("bike_type")["cost"]
+            .sum()
+            .round(2)
+        )
+
 
     def top_routes(self, n: int = 10) -> pd.DataFrame:
-        """Q10: Most common start→end station pairs.
+        routes = (
+            self.trips
+            .groupby(["start_station_id", "end_station_id"])
+            .size()
+            .sort_values(ascending=False)
+            .head(n)
+            .reset_index(name="trip_count")
+        )
 
-        TODO: group by (start_station_id, end_station_id), count, sort.
-        """
-        raise NotImplementedError("top_routes")
+        return routes
+
 
     # ------------------------------------------------------------------
     # Add more analytics methods here (Q6, Q11–Q14)
@@ -253,24 +285,46 @@ class BikeShareSystem:
         lines.append(f"  Total trips       : {summary['total_trips']}")
         lines.append(f"  Total distance    : {summary['total_distance_km']} km")
         lines.append(f"  Avg duration      : {summary['avg_duration_min']} min")
-
         # --- Q2: Top start stations ---
-        # TODO: uncomment once top_start_stations() is implemented
-        # top_stations = self.top_start_stations()
-        # lines.append("\n--- Top 10 Start Stations ---")
-        # lines.append(top_stations.to_string(index=False))
+        top_stations = self.top_start_stations()
+        lines.append("\n--- Top 10 Start Stations ---")
+        lines.append(top_stations.to_string(index=False))
 
         # --- Q3: Peak usage hours ---
-        # TODO: uncomment once peak_usage_hours() is implemented
-        # hours = self.peak_usage_hours()
-        # lines.append("\n--- Peak Usage Hours ---")
-        # lines.append(hours.to_string())
+        hours = self.peak_usage_hours()
+        lines.append("\n--- Peak Usage Hours ---")
+        lines.append(hours.to_string())
 
-        # --- Q9: Maintenance cost by bike type ---
-        # TODO: uncomment once maintenance_cost_by_bike_type() is implemented
-        # maint_cost = self.maintenance_cost_by_bike_type()
-        # lines.append("\n--- Maintenance Cost by Bike Type ---")
-        # lines.append(maint_cost.to_string())
+        # --- Q4: Busiest Day of Week ---
+        days = self.busiest_day_of_week()
+        lines.append("\n--- Busiest Day of Week ---")
+        lines.append(days.to_string())
+
+        # --- Q5: Avg Distance by User Type ---
+        avg_dist = self.avg_distance_by_user_type()
+        lines.append("\n--- Avg Distance by User Type ---")
+        lines.append(avg_dist.to_string())
+
+        # --- Q7: Monthly Trip Trend ---
+        monthly = self.monthly_trip_trend()
+        lines.append("\n--- Monthly Trip Trend ---")
+        lines.append(monthly.to_string())
+
+        # --- Q8: Top Active Users ---
+        top_users = self.top_active_users()
+        lines.append("\n--- Top 15 Active Users ---")
+        lines.append(top_users.to_string(index=False))
+
+        # --- Q9: Maintenance Cost by Bike Type ---
+        maint_cost = self.maintenance_cost_by_bike_type()
+        lines.append("\n--- Maintenance Cost by Bike Type ---")
+        lines.append(maint_cost.to_string())
+
+        # --- Q10: Top Routes ---
+        routes = self.top_routes()
+        lines.append("\n--- Top Routes ---")
+        lines.append(routes.to_string(index=False))
+
 
         # TODO: add more sections for Q4–Q8, Q10–Q14 …
 
